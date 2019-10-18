@@ -219,8 +219,10 @@ export function initDebug() {
 
 		if (oldDiffed) oldDiffed(vnode);
 
-		if (vnode._component && vnode._component.__hooks) {
-			let hooks = vnode._component.__hooks;
+		/** @type {import('./internal').Component} */
+		const component = vnode._component;
+		if (component && component.__hooks) {
+			let hooks = component.__hooks;
 			(hooks._list || []).forEach(hook => {
 				if (hook._callback && (!hook._args || !Array.isArray(hook._args))) {
 					/* istanbul ignore next */
@@ -241,9 +243,9 @@ export function initDebug() {
 					}
 				});
 			}
-			if (hooks._pendingLayoutEffects && Array.isArray(hooks._pendingLayoutEffects)) {
-				hooks._pendingLayoutEffects.forEach((layoutEffect) => {
-					if ((!layoutEffect._args || !Array.isArray(layoutEffect._args)) && !warnedComponents.useLayoutEffect[vnode.type]) {
+			if (component._renderCallbacks && Array.isArray(component._renderCallbacks)) {
+				component._renderCallbacks.forEach((possibleEffect) => {
+					if (possibleEffect._value && (!possibleEffect._args || !Array.isArray(possibleEffect._args)) && !warnedComponents.useLayoutEffect[vnode.type]) {
 						warnedComponents.useLayoutEffect[vnode.type] = true;
 						/* istanbul ignore next */
 						console.warn('You should provide an array of arguments as the second argument to the "useLayoutEffect" hook.\n\n' +
