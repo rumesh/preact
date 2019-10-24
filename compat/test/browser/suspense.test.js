@@ -4,6 +4,25 @@ import { setupRerender } from 'preact/test-utils';
 import { createElement as h, render, Component, Suspense, lazy, Fragment } from '../../src/index';
 import { setupScratch, teardown } from '../../../test/_util/helpers';
 
+function createLazy() {
+
+	/** @type {(c: ComponentType) => Promise<void>} */
+	let resolver, rejecter, promise;
+	const Lazy = lazy(() => promise = new Promise((resolve, reject) => {
+		resolver = c => {
+			resolve({ default: c });
+			return promise;
+		};
+
+		rejecter = () => {
+			reject();
+			return promise;
+		};
+	}));
+
+	return [Lazy, c => resolver(c), e => rejecter(e)];
+}
+
 /**
  * @typedef {import('../../../src').ComponentType} ComponentType
  * @typedef {[(c: ComponentType) => Promise<void>, (error: Error) => Promise<void>]} Resolvers
@@ -33,23 +52,9 @@ function createSuspender(DefaultComponent) {
 	 * @returns {Resolvers}
 	 */
 	function suspend() {
-
-		/** @type {(c: ComponentType) => Promise<void>} */
-		let resolver, rejecter, promise;
-		const Lazy = lazy(() => promise = new Promise((resolve, reject) => {
-			resolver = c => {
-				resolve({ default: c });
-				return promise;
-			};
-
-			rejecter = () => {
-				reject();
-				return promise;
-			};
-		}));
-
+		const [Lazy, resolve, reject] = createLazy();
 		renderLazy(Lazy);
-		return [c => resolver(c), e => rejecter(e)];
+		return [resolve, reject];
 	}
 
 	return [Suspender, suspend];
