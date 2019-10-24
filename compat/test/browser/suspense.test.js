@@ -105,7 +105,7 @@ describe('suspense', () => {
 	});
 
 	it('should support lazy', () => {
-		const LazyComp = () => <div>Hello from LazyComp</div>;
+		const LazyComp = ({ name }) => <div>Hello from {name}</div>;
 
 		/** @type {() => Promise<void>} */
 		let resolve;
@@ -122,7 +122,7 @@ describe('suspense', () => {
 
 		render((
 			<Suspense fallback={<div>Suspended...</div>}>
-				<Lazy />
+				<Lazy name="LazyComp" />
 			</Suspense>
 		), scratch); // Render initial state
 		rerender(); // Re-render with fallback cuz lazy threw
