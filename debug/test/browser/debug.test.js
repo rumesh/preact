@@ -622,7 +622,11 @@ describe('debug', () => {
 			}
 
 			Baz.propTypes = {
-				unhappy: function alwaysThrows(obj, key) { if (obj[key] === 'signal') throw Error('got prop inside lazy()'); }
+				unhappy: function alwaysThrows(obj, key) {
+					if (obj[key] === 'signal') {
+						throw Error('got prop inside lazy()');
+					}
+				}
 			};
 
 
@@ -635,6 +639,7 @@ describe('debug', () => {
 				</Suspense>
 			);
 			render(suspense, scratch);
+			rerender(); // Render fallback
 
 			expect(console.error).to.not.be.called;
 
