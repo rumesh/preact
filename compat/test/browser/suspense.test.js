@@ -1,7 +1,7 @@
 /* eslint-env browser, mocha */
 /** @jsx h */
 import { setupRerender } from 'preact/test-utils';
-import { createElement as h, render, Component, Suspense, lazy, Fragment } from '../../src/index';
+import { createElement as h, render, Component, Suspense, lazy, Fragment, createContext } from '../../src/index';
 import { setupScratch, teardown } from '../../../test/_util/helpers';
 
 function createLazy() {
@@ -829,7 +829,7 @@ describe('suspense', () => {
 		});
 	});
 
-	it('should render through components using shouldComponentUpdate', () => {
+	it('should render lazy components through components using shouldComponentUpdate', () => {
 		const [Suspender, suspend] = createSuspender(() => <i>-1</i>);
 
 		class Blocker extends Component {
@@ -864,6 +864,32 @@ describe('suspense', () => {
 		return resolve(() => <i>1</i>).then(() => {
 			rerender();
 			expect(scratch.innerHTML).to.equal('<b><i>0</i><i>1</i><i>2</i></b>');
+		});
+	});
+
+	it('should render lazy components through createContext', () => {
+		const ctx = createContext(null);
+		const [Lazy, resolve] = createLazy();
+
+		const suspense = (
+			<Suspense fallback={<div>Suspended...</div>}>
+				<ctx.Provider value="123">
+					<ctx.Consumer>
+						{value => (
+							<Lazy value={value} />
+						)}
+					</ctx.Consumer>
+				</ctx.Provider>
+			</Suspense>
+		);
+
+		render(suspense, scratch);
+		rerender();
+		expect(scratch.innerHTML).to.eql(`<div>Suspended...</div>`);
+
+		return resolve(props => <div>{props.value}</div>).then(() => {
+			rerender();
+			expect(scratch.innerHTML).to.eql(`<div>123</div>`);
 		});
 	});
 });
